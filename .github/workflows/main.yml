@@ -3,7 +3,7 @@ name: Deploy SignupLogin API
 on:
   push:
     branches:
-      - main   
+      - maaster  
 
 jobs:
   build-and-deploy:
