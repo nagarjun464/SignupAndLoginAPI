@@ -3,7 +3,7 @@ name: Deploy SignupLogin API
 on:
   push:
     branches:
-      - main   
+      - master  
 
 jobs:
   build-and-deploy:
@@ -12,12 +12,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-
-      - name: Restore dependencies
-        run: dotnet restore ./SignupLoginAPI.csproj
         
       - name: Build and Publish
-        run: dotnet publish ./SignupLoginAPI.csproj -c Release -o ./publish
+        run: dotnet publish ./SignupAndLoginAPI/SignupAndLoginAPI.csproj -c Release -o ./publish
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -30,12 +27,16 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Build Docker Image
+        working-directory: ./SignupAndLoginAPI
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev -q
           docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/signup-repo/signup-api:$GITHUB_SHA .
-
+      
       - name: Push Docker Image
-        run: docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/signup-repo/signup-api:$GITHUB_SHA
+        working-directory: ./SignupAndLoginAPI
+        run: |
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/signup-repo/signup-api:$GITHUB_SHA
+
 
       - name: Deploy to Cloud Run
         run: |
