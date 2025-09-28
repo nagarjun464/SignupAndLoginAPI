@@ -21,14 +21,23 @@ namespace SignupAndLoginAPI.Controllers
         public async Task<IActionResult> Signup([FromBody] SignupDto dto)
         {
             if (dto.Password != dto.ConfirmPassword)
-                return BadRequest("Passwords do not match.");
+            {
+                ModelState.AddModelError("ConfirmPassword", "Passwords do not match.");
+                return ValidationProblem(ModelState);
+            }
 
-            var existingUser = await _firestore.GetUserByEmailAsync(dto.Email);
-            if (existingUser != null)
-                return BadRequest("Email already exists.");
-            var existingusername = await _firestore.GetUserByUsernameAsync(dto.Username);
-            if (existingusername != null)
-                return BadRequest("Username already exists.");
+            if (await _firestore.GetUserByEmailAsync(dto.Email) != null)
+            {
+                ModelState.AddModelError("Email", "Email already exists.");
+                return ValidationProblem(ModelState);
+            }
+
+            if (await _firestore.GetUserByUsernameAsync(dto.Username) != null)
+            {
+                ModelState.AddModelError("Username", "Username already exists.");
+                return ValidationProblem(ModelState);
+            }
+
 
             var passwordHash = Convert.ToBase64String(
                 Encoding.UTF8.GetBytes(dto.Password)
