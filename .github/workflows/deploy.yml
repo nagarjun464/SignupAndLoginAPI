@@ -27,9 +27,8 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Build Docker Image
-        #working-directory: /SignupAndLoginAPI
+        working-directory: ./SignupAndLoginAPI/SignupAndLoginAPI
         run: |
-          gcloud auth configure-docker us-central1-docker.pkg.dev -q
           docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/signup-repo/signup-api:$GITHUB_SHA .
 
       - name: Push Docker Image
