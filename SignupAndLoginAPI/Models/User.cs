@@ -18,7 +18,7 @@ namespace SignupAndLoginAPI.Models
         public string Username { get; set; } = string.Empty;
 
         [FirestoreProperty]
-        public int PhoneNumber { get; set; } 
+        public long PhoneNumber { get; set; } 
 
         [FirestoreProperty]
         public string Email { get; set; } = string.Empty;

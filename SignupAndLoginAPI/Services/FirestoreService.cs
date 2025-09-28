@@ -17,7 +17,7 @@ namespace SignupAndLoginAPI.Services
         public async Task AddUserAsync(User user)
         {
             var collection = _db.Collection("users");
-            await collection.Document(user.Id.ToString()).SetAsync(user);
+            await collection.Document(user.Username.ToString()).SetAsync(user);
         }
 
         public async Task<User?> GetUserByEmailAsync(string email)

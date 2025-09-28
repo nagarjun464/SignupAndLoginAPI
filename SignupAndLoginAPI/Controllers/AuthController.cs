@@ -26,6 +26,9 @@ namespace SignupAndLoginAPI.Controllers
             var existingUser = await _firestore.GetUserByEmailAsync(dto.Email);
             if (existingUser != null)
                 return BadRequest("Email already exists.");
+            var existingusername = await _firestore.GetUserByEmailAsync(dto.Username);
+            if (existingusername != null)
+                return BadRequest("Username already exists.");
 
             var passwordHash = Convert.ToBase64String(
                 Encoding.UTF8.GetBytes(dto.Password)
