@@ -12,10 +12,9 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["SignupAndLoginAPI/SignupAndLoginAPI.csproj", "SignupAndLoginAPI/"]
-RUN dotnet restore "./SignupAndLoginAPI/SignupAndLoginAPI.csproj"
+COPY ["/SignupAndLoginAPI.csproj", "./"]
+RUN dotnet restore "./SignupAndLoginAPI.csproj"
 COPY . .
-WORKDIR "/src/SignupAndLoginAPI"
 RUN dotnet build "./SignupAndLoginAPI.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
