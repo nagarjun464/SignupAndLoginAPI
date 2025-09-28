@@ -31,5 +31,18 @@ namespace SignupAndLoginAPI.Services
 
             return snapshot.Documents[0].ConvertTo<User>();
         }
+
+        public async Task<User?> GetUserByUsernameAsync(string username)
+        {
+            var snapshot = await _db.Collection("users")
+                .WhereEqualTo("Username", username)
+                .Limit(1)
+                .GetSnapshotAsync();
+
+            if (snapshot.Count == 0) return null;
+
+            return snapshot.Documents[0].ConvertTo<User>();
+        }
+
     }
 }

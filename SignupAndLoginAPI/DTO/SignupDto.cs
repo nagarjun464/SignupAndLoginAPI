@@ -13,7 +13,7 @@ namespace SignupAndLoginAPI.DTOs
         [Required]
         [MinLength(6, ErrorMessage = "Username must be at least 6 characters long.")]
         [RegularExpression(@"^(?=.*\d)(?=.*[\W_]).+$",
-        ErrorMessage = "Username must include at least one number and one special character.")]
+        ErrorMessage = "Username must include at least one number and also one special character.")]
         public string Username { get; set; } = string.Empty;
         [Required]
         [Range(1000000000, 9999999999, ErrorMessage = "Phone number must be a 10-digit number.")]
@@ -24,6 +24,8 @@ namespace SignupAndLoginAPI.DTOs
 
         [Required]
         [MinLength(6, ErrorMessage = "Password must be at least 6 characters long.")]
+        [RegularExpression(@"^(?=.*\d)(?=.*[\W_]).+$",
+        ErrorMessage = "Password must include at least one number and also one special character.")]
         public string Password { get; set; } = string.Empty;
         public string ConfirmPassword { get; set; } = string.Empty;
     }
