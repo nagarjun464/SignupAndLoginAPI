@@ -12,12 +12,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-
-      - name: Restore dependencies
-        run: dotnet restore ./SignupAndLoginAPI.csproj
         
       - name: Build and Publish
-        run: dotnet publish ./SignupLoginAPI.csproj -c Release -o ./publish
+        run: dotnet publish ./SignupAndLoginAPI/SignupAndLoginAPI.csproj -c Release -o ./publish
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
