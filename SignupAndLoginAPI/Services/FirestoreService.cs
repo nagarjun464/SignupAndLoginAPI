@@ -1,4 +1,5 @@
 ﻿using Google.Cloud.Firestore;
+using BCrypt.Net;
 using SignupAndLoginAPI.Models;
 
 namespace SignupAndLoginAPI.Services
@@ -44,5 +45,15 @@ namespace SignupAndLoginAPI.Services
             return snapshot.Documents[0].ConvertTo<User>();
         }
 
+        public async Task<User?> GetUserByUsernameOrEmailAsync(string usernameOrEmail)
+        {
+            // Try username
+            var user = await GetUserByUsernameAsync(usernameOrEmail);
+            if (user != null)
+                return user;
+
+            // Try email
+            return await GetUserByEmailAsync(usernameOrEmail);
+        }
     }
 }

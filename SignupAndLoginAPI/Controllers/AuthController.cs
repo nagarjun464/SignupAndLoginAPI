@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Google.Cloud.Firestore;
+using Microsoft.AspNetCore.Mvc;
 using SignupAndLoginAPI.DTOs;
 using SignupAndLoginAPI.Models;
 using SignupAndLoginAPI.Services;
@@ -38,10 +39,7 @@ namespace SignupAndLoginAPI.Controllers
                 return ValidationProblem(ModelState);
             }
 
-
-            var passwordHash = Convert.ToBase64String(
-                Encoding.UTF8.GetBytes(dto.Password)
-            );
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
             var newUser = new User
             {
@@ -65,6 +63,24 @@ namespace SignupAndLoginAPI.Controllers
                 newUser.PhoneNumber,
                 newUser.Email
             });
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var user = await _firestore.GetUserByUsernameOrEmailAsync(dto.UsernameOrEmail);
+            if (user == null)
+                return Unauthorized(new { error = "Invalid username or email." });
+
+            // ✅ Verify hashed password
+            if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+                return Unauthorized(new { error = "Invalid password." });
+
+            // For now just success, later return JWT
+            return Ok(new { message = "Login successful", username = user.Username });
         }
     }
 }
