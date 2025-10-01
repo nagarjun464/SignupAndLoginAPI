@@ -1,10 +1,13 @@
 ﻿using Google.Apis.Auth;
 using Google.Cloud.Firestore;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using SignupAndLoginAPI.DTOs;
 using SignupAndLoginAPI.Models;
 using SignupAndLoginAPI.Services;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace SignupAndLoginAPI.Controllers
@@ -83,6 +86,20 @@ namespace SignupAndLoginAPI.Controllers
             // ✅ Verify hashed password
             if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
                 return Unauthorized(new { error = "Invalid password." });
+
+            // ✅ Create claims
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email)
+            };
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            // ✅ Issue auth cookie
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
 
             // For now just success, later return JWT
             return Ok(new { message = "Login successful", username = user.Username });
