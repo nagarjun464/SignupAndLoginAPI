@@ -87,18 +87,18 @@ namespace SignupAndLoginAPI.Controllers
             if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
                 return Unauthorized(new { error = "Invalid password." });
 
-            // ✅ Create claims
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Email, user.Email)
-            };
+            //// ✅ Create claims
+            //var claims = new List<Claim>
+            //{
+            //    new Claim(ClaimTypes.Name, user.Username),
+            //    new Claim(ClaimTypes.Email, user.Email)
+            //};
 
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
+            //var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            //var principal = new ClaimsPrincipal(identity);
 
-            // ✅ Issue auth cookie
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            //// ✅ Issue auth cookie
+            //await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
 
             // For now just success, later return JWT
