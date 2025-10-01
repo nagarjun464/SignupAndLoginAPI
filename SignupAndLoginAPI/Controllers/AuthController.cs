@@ -96,13 +96,19 @@ namespace SignupAndLoginAPI.Controllers
         [HttpGet("google-login")]
         public IActionResult GoogleLogin()
         {
-            var redirectUrl = Url.Action("GoogleCallback", "Auth", null, Request.Scheme);
             var clientId = _config["GoogleAuth:ClientId"];
+            var redirectUri = _config["GoogleAuth:RedirectUri"];
 
-            var url = $"https://accounts.google.com/o/oauth2/v2/auth?response_type=code" +
-                      $"&client_id={clientId}" +
-                      $"&redirect_uri={redirectUrl}" +
-                      $"&scope=openid%20email%20profile";
+            if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(redirectUri))
+            {
+                return StatusCode(500, "GoogleAuth settings are missing in configuration.");
+            }
+
+            var url = $"https://accounts.google.com/o/oauth2/v2/auth?" +
+                      $"response_type=code&" +
+                      $"client_id={clientId}&" +
+                      $"redirect_uri={redirectUri}&" +
+                      $"scope=openid%20email%20profile";
 
             return Redirect(url);
         }
@@ -112,42 +118,24 @@ namespace SignupAndLoginAPI.Controllers
         {
             var clientId = _config["GoogleAuth:ClientId"];
             var clientSecret = _config["GoogleAuth:ClientSecret"];
-            var redirectUrl = Url.Action("GoogleCallback", "Auth", null, Request.Scheme);
+            var redirectUri = _config["GoogleAuth:RedirectUri"];
 
-            using var http = new HttpClient();
-            var tokenResponse = await http.PostAsync("https://oauth2.googleapis.com/token",
+            using var client = new HttpClient();
+            var tokenResponse = await client.PostAsync(
+                "https://oauth2.googleapis.com/token",
                 new FormUrlEncodedContent(new Dictionary<string, string>
                 {
-            {"code", code},
-            {"client_id", clientId},
-            {"client_secret", clientSecret},
-            {"redirect_uri", redirectUrl},
-            {"grant_type", "authorization_code"}
+                    {"code", code},
+                    {"client_id", clientId},
+                    {"client_secret", clientSecret},
+                    {"redirect_uri", redirectUri},
+                    {"grant_type", "authorization_code"}
                 }));
 
-            var json = await tokenResponse.Content.ReadAsStringAsync();
-            var doc = JsonDocument.Parse(json);
-            var idToken = doc.RootElement.GetProperty("id_token").GetString();
-
-            var payload = await GoogleJsonWebSignature.ValidateAsync(idToken);
-
-            // Save or find user in Firestore
-            var user = await _firestore.GetUserByEmailAsync(payload.Email);
-            if (user == null)
-            {
-                user = new User
-                {
-                    Email = payload.Email,
-                    FirstName = payload.GivenName,
-                    LastName = payload.FamilyName,
-                    Username = payload.Email.Split('@')[0],
-                    PasswordHash = string.Empty
-                };
-                await _firestore.AddUserAsync(user);
-            }
-
-            return Ok(new { message = "Google Login successful", user.Email });
+            var payload = await tokenResponse.Content.ReadAsStringAsync();
+            return Content(payload, "application/json");
         }
     }
+}
 }
 
