@@ -81,17 +81,12 @@ namespace SignupAndLoginAPI.Controllers
 
             var user = await _firestore.GetUserByUsernameOrEmailAsync(dto.UsernameOrEmail);
             if (user == null)
-            {
-                ModelState.AddModelError("UsernameOrEmail", "Invalid username or email.");
-                return ValidationProblem(ModelState);
-            }
+                return Unauthorized(new { error = "Invalid username or email." });
+            Console.WriteLine(user);
 
             // ✅ Verify hashed password
             if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-            {
-                ModelState.AddModelError("Password", "Invalid password.");
-                return ValidationProblem(ModelState);
-            }
+                return Unauthorized(new { error = "Invalid password." });
 
             //// ✅ Create claims
             //var claims = new List<Claim>
