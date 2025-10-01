@@ -137,7 +137,7 @@ namespace SignupAndLoginAPI.Controllers
             var email = jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
 
             // 3. Redirect to Blazor UI
-            return Redirect($"https://localhost:7103/home?msg=success&&email={email}");
+            return Redirect($"https://electionui-814747071660.us-central1.run.app/home?msg=success&&email={email}");
         }
 
     }
