@@ -14,16 +14,12 @@ namespace SignupAndLoginAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly FirestoreService _firestore;
-
-        public AuthController(FirestoreService firestore)
-        {
-            _firestore = firestore;
-        }
         private readonly IConfiguration _config;
 
-        public AuthController(IConfiguration config)
+        public AuthController(IConfiguration config, FirestoreService firestore)
         {
             _config = config;
+            _firestore = firestore;
         }
 
 
