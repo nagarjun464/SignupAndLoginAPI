@@ -163,33 +163,36 @@ namespace SignupAndLoginAPI.Controllers
         {
             var clientId = _config["GoogleAuth:ClientId"];
             var clientSecret = _config["GoogleAuth:ClientSecret"];
-            var redirectUrl = _config["GoogleAuth:RedirectUri"]; // your callback
+            var redirectUri = _config["GoogleAuth:RedirectUri"];
 
-            // 1. Exchange code for tokens
             using var client = new HttpClient();
             var tokenResponse = await client.PostAsync("https://oauth2.googleapis.com/token",
                 new FormUrlEncodedContent(new Dictionary<string, string>
                 {
-                    {"code", code},
-                    {"client_id", clientId},
-                    {"client_secret", clientSecret},
-                    {"redirect_uri", redirectUrl},
-                    {"grant_type", "authorization_code"}
+            {"code", code},
+            {"client_id", clientId},
+            {"client_secret", clientSecret},
+            {"redirect_uri", redirectUri},
+            {"grant_type", "authorization_code"}
                 }));
 
             var payload = await tokenResponse.Content.ReadFromJsonAsync<JsonElement>();
             var idToken = payload.GetProperty("id_token").GetString();
 
-            // 2. Decode user info (simplified, normally validate with Google)
-            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            // Decode the token
+            var handler = new JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(idToken);
             var email = jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
 
-            // 3. Redirect to Blazor UI
-            return Redirect("https://electionui-814747071660.us-central1.run.app/home");
+            // 🔥 Your custom redirect to Blazor
+            var jwtString = handler.WriteToken(jwt);
+            return Redirect($":https://electionui-814747071660.us-central1.run.app/google-redirect?token={jwtString}");
         }
 
     }
+
+
 }
+
 
 
