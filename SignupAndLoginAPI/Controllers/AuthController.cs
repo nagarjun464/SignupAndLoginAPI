@@ -76,34 +76,52 @@ namespace SignupAndLoginAPI.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
 
             var user = await _firestore.GetUserByUsernameOrEmailAsync(dto.UsernameOrEmail);
+            
             if (user == null)
-                return Unauthorized(new { error = "Invalid username or email." });
-            Console.WriteLine(user);
+            {
+                ModelState.AddModelError("UsernameOrEmail", "Invalid username or email.");
+                return ValidationProblem(ModelState);
+            }
+            else if (user.Username != dto.UsernameOrEmail)
+            {
+                if (user.Email != dto.UsernameOrEmail)
+                {
+                    ModelState.AddModelError("UsernameOrEmail", "Username or Email is required");
+                    return ValidationProblem(ModelState);
+                }
 
-            // ✅ Verify hashed password
-            if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-                return Unauthorized(new { error = "Invalid password." });
+            }
 
-            //// ✅ Create claims
-            //var claims = new List<Claim>
-            //{
-            //    new Claim(ClaimTypes.Name, user.Username),
-            //    new Claim(ClaimTypes.Email, user.Email)
-            //};
+            if (dto.Password == null)
+            {
+                ModelState.AddModelError("Password", "Inavlid Password");
+                return ValidationProblem(ModelState);
+            }
+            else if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+            {
+                ModelState.AddModelError("Password", "Password is required");
+                return ValidationProblem(ModelState);
+            }
 
-            //var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            //var principal = new ClaimsPrincipal(identity);
+            // ✅ Create claims
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email)
+            };
 
-            //// ✅ Issue auth cookie
-            //await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            // ✅ Issue auth cookie
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
 
             // For now just success, later return JWT
             return Ok(new { message = "Login successful", username = user.Username });
+            //return Redirect($"https://electionui-814747071660.us-central1.run.app/home?msg=success&&email={user.Username}"); 
         }
 
 
