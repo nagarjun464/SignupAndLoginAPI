@@ -186,7 +186,7 @@ namespace SignupAndLoginAPI.Controllers
 
             // 🔥 Your custom redirect to Blazor
             var jwtString = handler.WriteToken(jwt);
-            return Redirect($":https://electionui-814747071660.us-central1.run.app/google-redirect?token={jwtString}");
+            return Redirect($"https://electionui-814747071660.us-central1.run.app/google-redirect?token={jwtString}");
         }
 
     }
