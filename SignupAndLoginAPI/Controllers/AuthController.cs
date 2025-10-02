@@ -9,6 +9,8 @@ using SignupAndLoginAPI.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace SignupAndLoginAPI.Controllers
 {
@@ -105,23 +107,34 @@ namespace SignupAndLoginAPI.Controllers
                 return ValidationProblem(ModelState);
             }
 
-            // ✅ Create claims
-            var claims = new List<Claim>
-            {
+            var claims = new[]
+             {
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Email, user.Email)
             };
 
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            // ✅ Issue auth cookie
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-
-            // For now just success, later return JWT
-            return Ok(new { message = "Login successful", username = user.Username });
-            //return Redirect($"https://electionui-814747071660.us-central1.run.app/home?msg=success&&email={user.Username}"); 
+            var token = new JwtSecurityToken(
+                issuer: _config["Jwt:Issuer"],
+                audience: _config["Jwt:Issuer"],
+                claims: claims,
+                expires: DateTime.Now.AddHours(2),
+                signingCredentials: creds
+            );
+            return Ok(new
+            {
+                token = new JwtSecurityTokenHandler().WriteToken(token),
+                username = user.Username
+            });
+            
+            //catch
+            //{
+            //    //// For now just success, later return JWT
+            //    return Ok(new { message = "Login successful", username = user.Username });
+            //    ////return Redirect($"https://electionui-814747071660.us-central1.run.app/home?msg=success&&email={user.Username}"); 
+            //}
         }
 
 
@@ -173,7 +186,7 @@ namespace SignupAndLoginAPI.Controllers
             var email = jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
 
             // 3. Redirect to Blazor UI
-            return Redirect($"https://electionui-814747071660.us-central1.run.app/home?msg=success&&email={email}");
+            return Redirect("https://electionui-814747071660.us-central1.run.app/home");
         }
 
     }
